@@ -1,0 +1,61 @@
+{
+    "rules": [
+        {
+            "predicate": "All",
+            "conditions": [
+                {
+                    "field": "from_email",
+                    "predicate": "contains",
+                    "value": "example@example.com"
+                },
+                {
+                    "field": "subject",
+                    "predicate": "does_not_equal",
+                    "value": "Spam"
+                }
+            ],
+            "actions": [
+                "mark_as_read",
+                {
+                    "move_message": "Important"
+                }
+            ]
+        },
+        {
+            "predicate": "Any",
+            "conditions": [
+                {
+                    "field": "received_date",
+                    "predicate": "less_than",
+                    "value": "30"
+                },
+                {
+                    "field": "message",
+                    "predicate": "contains",
+                    "value": "urgent"
+                }
+            ],
+            "actions": [
+                "mark_as_unread"
+            ]
+        },
+        {
+            "predicate": "Any",
+            "conditions": [
+                {
+                    "field": "received_date",
+                    "predicate": "less_than",
+                    "value": "30"
+                },
+                {
+                    "field": "subject",
+                    "predicate": "contains",
+                    "value": "Alert"
+                }
+            ],
+            "actions": [
+                "mark_as_unread"
+            ]
+        }
+    ]
+}

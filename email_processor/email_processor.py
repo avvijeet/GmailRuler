@@ -11,7 +11,8 @@ from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # If modifying these SCOPES, delete the file token.pickle.
-SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
+SCOPES = ["https://www.googleapis.com/auth/gmail.readonly",
+          "https://www.googleapis.com/auth/gmail.modify"]
 
 # Database setup
 Base = declarative_base()
@@ -23,6 +24,7 @@ class EmailModel(Base):
     from_email = Column(String, index=True)
     subject = Column(String, index=True)
     message = Column(String)
+    message_id = Column(Integer, index=True)
     received_date = Column(DateTime, index=True)
 
 
@@ -71,6 +73,7 @@ def fetch_emails(service):
                 "subject": next(header["value"] for header in msg["payload"]["headers"] if header["name"] == "Subject"),
                 "message": msg["snippet"],
                 "received_date": datetime.fromtimestamp(int(msg["internalDate"]) / 1000),
+                "message_id": message["id"],
             }
             email_list.append(email_data)
         return email_list
@@ -79,7 +82,7 @@ def fetch_emails(service):
         return []
 
 
-def save_emails_to_db(email_list):
+def save_emails_to_db(email_list: list[dict]):
     """Save fetched emails to the SQLite database."""
     engine = create_engine("sqlite:///emails.db")
     Base.metadata.create_all(engine)
@@ -92,6 +95,7 @@ def save_emails_to_db(email_list):
             subject=email["subject"],
             message=email["message"],
             received_date=email["received_date"],
+            message_id=email["message_id"],
         )
         session.add(new_email)
 
@@ -106,7 +110,7 @@ def load_rules_from_json(file_path):
     return rules
 
 
-def apply_rules_to_emails(rules, emails):
+def apply_rules_to_emails(rules, emails: list[EmailModel]):
     """Apply rules to the list of emails and perform actions."""
     for rule in rules["rules"]:
         predicate = rule["predicate"]
@@ -125,7 +129,7 @@ def apply_rules_to_emails(rules, emails):
                 perform_actions(email, actions)
 
 
-def check_condition(email, condition):
+def check_condition(email: EmailModel, condition: dict):
     """Check if a single condition matches the email."""
     field = condition["field"]
     predicate = condition["predicate"]
@@ -148,7 +152,7 @@ def check_condition(email, condition):
     return False
 
 
-def perform_actions(email, actions):
+def perform_actions(email: EmailModel, actions: list):
     """Perform actions on the email based on the rules."""
     service = authenticate_gmail()
     for action in actions:
@@ -160,27 +164,29 @@ def perform_actions(email, actions):
             move_message(service, email, action["move_message"])
 
 
-def mark_as_read(service, email):
+def mark_as_read(service, email: EmailModel):
     """Mark the email as read."""
     try:
-        service.users().messages().modify(userId="me", id=email.id,
-                                          body={"removeLabelIds": ["UNREAD"]}).execute()
-        print(f"Marked email {email.id} as read.")
+        service.users().messages().modify(
+            userId="me", id=email.message_id, body={"removeLabelIds": ["UNREAD"]}
+        ).execute()
+        print(f"Marked email {email.from_email} as read.")
     except HttpError as error:
-        print(f"An error occurred while marking as read: {error}")
+        print(
+            f"An error occurred while marking {email.from_email = } as read: {error}")
 
 
-def mark_as_unread(service, email):
+def mark_as_unread(service, email: EmailModel):
     """Mark the email as unread."""
     try:
-        service.users().messages().modify(userId="me", id=email.id,
+        service.users().messages().modify(userId="me", id=email.message_id,
                                           body={"addLabelIds": ["UNREAD"]}).execute()
-        print(f"Marked email {email.id} as unread.")
+        print(f"Marked email {email.from_email} as unread.")
     except HttpError as error:
         print(f"An error occurred while marking as unread: {error}")
 
 
-def move_message(service, email, folder):
+def move_message(service, email: EmailModel, folder: str):
     """Move the email to the specified folder."""
     try:
         # Assuming 'folder' is a label name in Gmail
@@ -190,9 +196,10 @@ def move_message(service, email, folder):
             (label["id"] for label in labels if label["name"] == folder), None)
 
         if label_id:
-            service.users().messages().modify(userId="me", id=email.id,
-                                              body={"addLabelIds": [label_id]}).execute()
-            print(f"Moved email {email.id} to folder {folder}.")
+            service.users().messages().modify(
+                userId="me", id=email.message_id, body={"addLabelIds": [label_id]}
+            ).execute()
+            print(f"Moved email {email.from_email} to folder {folder}.")
         else:
             print(f"Label {folder} not found.")
     except HttpError as error:

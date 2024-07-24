@@ -1,4 +1,4 @@
-from .email_processor import Email  # noqa
+from .email_processor import EmailModel  # noqa
 from .email_processor import apply_rules_to_emails  # noqa
 from .email_processor import authenticate_gmail  # noqa
 from .email_processor import create_engine  # noqa

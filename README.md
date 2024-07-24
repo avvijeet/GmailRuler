@@ -30,7 +30,7 @@ Before setting up the project, ensure you have the following installed:
 Clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/email-processor.git
+git clone https://github.com/avvijeet/email-processor.git
 cd email-processor
 ```
 
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 ### 4. Obtain Gmail API Credentials
 1. Go to the Google Cloud Console.
 2. Create a new project or select an existing project.
-3. Enable the Gmail API for your project.
+3. Enable the Gmail API for your project. Reference[https://www.geeksforgeeks.org/how-to-read-emails-from-gmail-using-gmail-api-in-python/]
 4. Go to the OAuth consent screen and configure the OAuth consent screen.
 5. Go to Credentials and create OAuth 2.0 credentials (Client ID).
 6. Download the credentials.json file and place it in the email_processor directory.

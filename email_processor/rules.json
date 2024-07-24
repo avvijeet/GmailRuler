@@ -6,7 +6,7 @@
                 {
                     "field": "from_email",
                     "predicate": "contains",
-                    "value": "example@example.com"
+                    "value": "support@cleartax.in"
                 },
                 {
                     "field": "subject",
@@ -17,7 +17,7 @@
             "actions": [
                 "mark_as_read",
                 {
-                    "move_message": "Important"
+                    "move_message": "ClearTax"
                 }
             ]
         },

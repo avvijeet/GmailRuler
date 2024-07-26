@@ -1,26 +1,21 @@
 import os
 
+from fetch_emails import fetch_emails, save_emails_to_db
 from flasgger import Swagger, swag_from
 from flask import Flask, request
 from flask_restful import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
-
-from email_processor import (
+from process_emails import (
     EmailModel,
     apply_rules_to_emails,
     authenticate_gmail,
     create_new_db_session,
-    fetch_emails,
     load_rules_from_json,
     mark_as_read,
     mark_as_unread,
     move_message,
-    save_emails_to_db,
+    RULES_JSON_PATH,
 )
-
-# Get the current directory path
-dir_path = os.path.dirname(os.path.realpath(__file__))
-RULES_JSON_PATH = os.path.join(dir_path, "rules.json")
 
 
 app = Flask(__name__)

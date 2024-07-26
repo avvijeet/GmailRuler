@@ -1,4 +1,5 @@
-import json, os
+import json
+import os
 from datetime import datetime, timedelta
 
 from fetch_emails import EmailModel, authenticate_gmail
@@ -105,7 +106,7 @@ def move_message(service, email: EmailModel, folder: str):
 
         if label_id:
             service.users().messages().modify(
-                userId="me", id=email.message_id, body={"addLabelIds": [label_id]}
+                userId="me", id=email.message_id, body={"addLabelIds": [label_id], "removeLabelIds": ["INBOX"]}
             ).execute()
             print(f"Moved email {email.from_email} to folder {folder}.")
         else:
